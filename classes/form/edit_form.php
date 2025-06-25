@@ -14,6 +14,9 @@ class edit_form extends moodleform {
     public function definition() {
         $mform = $this->_form; // Вместо того, чтобы везде писать "$this->_form->addElement(...)", _form - объект формы
 
+        $mform->addElement('hidden', 'id'); // Добавление поля id, скрытого на форме. Нужно для передачи в $data (edit.php) полной записи
+        $mform->setType('id', PARAM_INT);
+
         $mform->addElement('header', 'olympiadheader', 'Добавление олимпиады'); // Добавление элемента в форму (тип поля, имя поля, подпись поля, [доп. опции])
 
         $mform->addElement('text', 'name', 'Название');
