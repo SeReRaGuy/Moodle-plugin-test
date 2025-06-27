@@ -1,26 +1,23 @@
 <?php
 
-// Страница формы - содержит логику обработки формы и отрисовки страницы
-require_once('../../config.php'); // Подключение конфигурационного файла moodle - ядро системы (.. .. - значит подняться на 2 уровня вверх от текущей директории)
-require_login(); // Если пользователь не авторизован - редирект на страницу входа
+// Страница формы — содержит логику обработки формы и отрисовки страницы
 
-                                            // Записи с $ - переменные в PHP. Переменные с большими буквами - шлобальные переменные самого moodle
-$id = optional_param('id', 0, PARAM_INT); // Читает ссылку и выделяет от-туда параметр id, проверяя его на int, если его нет, то id=0
-$context = context_system::instance(); // Получает контекст системы, где пользоатель находится в данный момент - для правильной проверки прав доступа, роли и прочего
-                                       // С помощью контекста, moodle определяет на каком уровне находится пользователь (вся система, или например ЛК)
-$PAGE->set_context($context); // Установка контекста для данной страницы
-$PAGE->set_url(new moodle_url('/blocks/olympiads/edit.php', ['id' => $id])); // Записывает текущий URL для moodle
-$PAGE->set_title($id ? 'Редактировать олимпиаду' : 'Добавить олимпиаду'); // Если id != 0, то редактировать, если нет, то добавить - установка имени страницы
-$PAGE->set_heading('Олимпиады'); // Установка главного заголовка на странице (head)
+require_once('../../config.php'); // Подключение конфигурационного файла moodle — ядро системы (.. .. — подняться на 2 уровня выше)
+require_login(); // Если пользователь не авторизован — редирект на страницу входа
 
-require_capability('block/olympiads:addinstance', $context); // Проверка права (addinstance) пользователя касаемо добавления новой олимпиады (в установленном контексте!)
+$id = optional_param('id', 0, PARAM_INT); // Получение параметра id из URL (если не задан — 0)
+$context = context_system::instance(); // Контекст системы для проверки прав
+$PAGE->set_context($context);
+$PAGE->set_url(new moodle_url('/blocks/olympiads/edit.php', ['id' => $id]));
+$PAGE->set_title($id ? 'Редактировать олимпиаду' : 'Добавить олимпиаду');
+$PAGE->set_heading('Олимпиады');
 
-require_once($CFG->dirroot . '/blocks/olympiads/classes/form/edit_form.php'); // Подключение непосредственно формы
-                                                                              // $CFG->dirroot - абсолютный путь до корня moodle
-if ($id) { // Если != 0
-    $record = $DB->get_record('olympiads', ['id' => $id], '*', MUST_EXIST); // В БД поступит такой запрос: SELECT * FROM mdl_olympiads WHERE id = $id LIMIT 1;
-                                                                            // MUST_EXIST - константа moodle: если запись не найдена - выбросить исключение
-} else { // Иначе заполняем переменную полями вручную
+require_capability('block/olympiads:addinstance', $context); // Проверка прав на добавление/редактирование
+require_once($CFG->dirroot . '/blocks/olympiads/classes/form/edit_form.php'); // Подключение формы
+
+if ($id) { // Если запись существует
+    $record = $DB->get_record('olympiads', ['id' => $id], '*', MUST_EXIST); // Получение записи из БД
+} else {
     $record = new stdClass();
     $record->name = '';
     $record->description = '';
@@ -28,23 +25,46 @@ if ($id) { // Если != 0
     $record->date_end = 0;
 }
 
-$form = new \block_olympiads\form\edit_form(null, ['id' => $id]); // form - экземпляр edit_form.php, туда передаётся id, место null значит URL для отправки формы, при передаче null используется текущая страница
-$form->set_data($record); // Записать данные из $record
+$filedraftid = file_get_submitted_draft_itemid('image_file'); // Получение ID файлового черновика для поля формы "image_file" (создание черновика)
+file_prepare_draft_area( // Инициализация временной формы (именно тут и подтягивается ранее сохранённое изображение)
+    $filedraftid,              // ID черновика
+    $context->id,              // Контекст
+    'block_olympiads',         // Компонент (имя плагина)
+    'image',                   // filearea (можно назвать как угодно, но одинаково везде)
+    $id,                       // ID олимпиады (0, если новая)
+    ['subdirs' => 0, 'maxfiles' => 1, 'maxbytes' => 0] // Параметры (разрешены ли вложенные папки?, максимально файлов, максимальный вес)
+);
+$record->image_file = $filedraftid; // Тепеь запись содержит черновик
 
-if ($form->is_cancelled()) { // Если прожата отмена, возвращение в ЛК
-    redirect(new moodle_url('/my/'));
-} else if ($data = $form->get_data()) { // Если нет, подтягивание информации из формы
-    if ($id) { // Если != 0 - запись редактируется
-        $DB->update_record('olympiads', $data); // Обновление записи в БД (таблица, информация о записи)
-    } else { // Если = 0 - запись новая
-        $data->date_created = time(); // В запись добавляется поле текущего времени ...
-        $data->created_by = $USER->id; // ... а так же id автора олимпиады
-        $DB->insert_record('olympiads', $data); // Добавление в БД новой записи
+$form = new \block_olympiads\form\edit_form(null, ['id' => $id]); // Создание экземпляра edit_form (url для отправки формы null - на этой же странице, передача id в экземпляр)
+$form->set_data($record); // Установка значений в форму
+
+if ($form->is_cancelled()) {
+    redirect(new moodle_url('/my/')); // Отмена — возврат в ЛК
+} else if ($data = $form->get_data()) {
+    $draftitemid = file_get_submitted_draft_itemid('image_file'); // Получение изображения, которое прикреплено к записи
+
+    if ($id) {
+        $DB->update_record('olympiads', $data); // Обновление записи
+    } else {
+        $data->date_created = time();
+        $data->created_by = $USER->id;
+        $id = $DB->insert_record('olympiads', $data); // Запись создаётся — $id потребуется для загрузки файла
     }
-    redirect(new moodle_url('/my/'), 'Сохранено', 2); // Перенаправление (URL, сообщение при редиректе, задержка редиректа)
+
+    file_save_draft_area_files( // Сохранение файлов из черновика в основное хранилище
+        $draftitemid, // ID черновика
+        $context->id,
+        'block_olympiads', // Привязка по плагину
+        'image',
+        $id, // Привязка по id записи
+        ['subdirs' => 0, 'maxfiles' => 1, 'maxbytes' => 0]
+    );
+
+    redirect(new moodle_url('/my/'), 'Сохранено', 2);
 }
 
-// Генерация  шапки страницы, вывод формы и генерация подвала страницы
+// Вывод формы и страницы
 echo $OUTPUT->header();
 $form->display();
 echo $OUTPUT->footer();

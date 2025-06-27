@@ -29,6 +29,12 @@ class edit_form extends moodleform {
         $mform->addElement('date_selector', 'date_start', 'Дата начала');
         $mform->addElement('date_selector', 'date_end', 'Дата окончания');
 
+        $mform->addElement('filepicker', 'image_file', 'Изображение олимпиады', null, [ // null - HTML атрибуты, они не нужны, поэтому null, в [] опции для filepicker
+            'maxbytes' => 0,
+            'accepted_types' => ['image'],
+        ]);
+
+
         $this->add_action_buttons(true, 'Сохранить'); // Добавить кнопку сохртанения (добавлять ли кнопку отмены?, подпись для кнопки сохранения)
     }
 }
