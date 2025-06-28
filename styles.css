@@ -1,0 +1,24 @@
+/* Сетка из карточек */
+.olympiads-grid {
+    display: grid;                          /* Непосредственно сетка */
+    grid-template-columns: repeat(4, 1fr);  /* 4 колонки одинаковой ширины */
+    gap: 15px;                              /* Отступы между карточками */
+    margin-top: 20px;                       /* Отступ сверху */
+}
+
+/* Одна карточка олимпиады */
+.olympiad-card {
+    border: 1px solid #ccc;                 /* Серая рамка */
+    border-radius: 8px;                     /* Скруглённые углы */
+    overflow: hidden;                       /* Скрыть всё, что выходит за границы */
+    background-color: #fff;                 /* Белый фон карточки */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);  /* Мягкая тень */
+    text-align: center;                     /* Центровка текста */
+    padding: 10px;                          /* Внутренние отступы */
+}
+
+/* Название карточки */
+.olympiad-name {
+    font-weight: bold;                      /* Жирный текст */
+    margin-top: 10px;                       /* Отступ сверху */
+}

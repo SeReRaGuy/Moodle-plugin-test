@@ -31,16 +31,28 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
         $hasexcludedrole = false; // По умолчанию пользователь не имеет тех 2-х ролей
 
         foreach ($roles as $role) { // Для каждого элемента (роли) в $roles
-            $shortname = $DB->get_field('role', 'shortname', ['id' => $role->roleid]); // ??? Нужно вспомнить
+            $shortname = $DB->get_field('role', 'shortname', ['id' => $role->roleid]); // Получить из таблицы ролей столбец shortname с записью id пользователя (SELECT shortname FROM mdl_role WHERE id = $role->roleid LIMIT 1;)
             if (in_array($shortname, $excludedroles)) { // Если в $shortname есть хоть одна из $excludedroles ...
                 $hasexcludedrole = true; // ... то пользователь имеет роль
-                break;
+                break; // Завершить foreach принудительно
             }
         }
 
         if (!$hasexcludedrole) { // Если у пользователя не обнаружена особая роль
-            $this->content = new stdClass(); // ??? content - это что такое
-            $this->content->text = get_string('olympiadsblocktext', 'block_olympiads');
+            $this->content = new stdClass(); // Мы наследуем класс от block_base (помним, $this - это обращение к block_olympiads), content - свойство block_base, описывает то, что будет отражено в блоке
+            $PAGE->requires->css('/blocks/olympiads/styles.css'); // Запрашиваем css файл
+
+            $olympiads = $DB->get_records('olympiads'); // Получить все олимпиады
+            $data = []; // Пустой массив с данными
+
+            foreach ($olympiads as $olympiad) { // Для каждой записи в таблице олимпиад
+                $data[] = [
+                    'name' => $olympiad->name // Наполняем массив данных названиями олимпиад
+                ];
+            }
+
+            $this->content->text = $OUTPUT->render_from_template('block_olympiads/student_view', ['olympiads' => $data]); // Используя шаблон, рендерим карточку, передавая туда массив $data в качестве "olympiads"
+
             $this->content->footer = '';
             return $this->content;
         }
