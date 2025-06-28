@@ -25,6 +25,27 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
             return $this->content;
         }
 
+        $systemcontext = context_system::instance(); // Получение контекста
+        $roles = get_user_roles($systemcontext, $USER->id); // Получение ролей пользователя по контексту
+        $excludedroles = ['manager', 'editingteacher']; // Массив ролей (далее - кто будет получать таблицы)
+        $hasexcludedrole = false; // По умолчанию пользователь не имеет тех 2-х ролей
+
+        foreach ($roles as $role) { // Для каждого элемента (роли) в $roles
+            $shortname = $DB->get_field('role', 'shortname', ['id' => $role->roleid]); // ??? Нужно вспомнить
+            if (in_array($shortname, $excludedroles)) { // Если в $shortname есть хоть одна из $excludedroles ...
+                $hasexcludedrole = true; // ... то пользователь имеет роль
+                break;
+            }
+        }
+
+        if (!$hasexcludedrole) { // Если у пользователя не обнаружена особая роль
+            $this->content = new stdClass(); // ??? content - это что такое
+            $this->content->text = get_string('olympiadsblocktext', 'block_olympiads');
+            $this->content->footer = '';
+            return $this->content;
+        }
+
+
         // Блок удаления записи из БД
         $deleteid = optional_param('delete', 0, PARAM_INT);
         if ($deleteid) {
