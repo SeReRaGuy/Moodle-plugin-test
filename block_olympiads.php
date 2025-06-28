@@ -51,6 +51,27 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
                 ];
             }
 
+            $context = context_system::instance(); // Получение контекста
+            $itemid = 7;    // itemid из mdl_files, который хотим подгрузить
+            $filename = 'изображение_2025-06-27_093835712.png'; // Название файла
+            $imageurl = moodle_url::make_pluginfile_url( // Статический (::) метод make_pluginfile_url(), формирующий URL ссылку на pluginfile.php, возвращает объект типа moodle_url
+                                // Записываем информацию, по которой будет формироваться ссылка на изображение (вытягиваться из mdl_files):
+                $context->id, // id данного (в котором сейчас находится пользователь) контекста
+                'block_olympiads', // компонент
+                'image', //filearea
+                $itemid,
+                '/', // filepath (обычно такой)
+                $filename
+            )->out(); // "->" - цепочка вызовов методов, где out() преобразует moodle_url в строку
+
+            // Сформируем массив данных для шаблона
+            $data = [
+                [
+                    'name' => 'Тестовая олимпиада',
+                    'image' => $imageurl
+                ]
+            ];
+
             $this->content->text = $OUTPUT->render_from_template('block_olympiads/student_view', ['olympiads' => $data]); // Используя шаблон, рендерим карточку, передавая туда массив $data в качестве "olympiads"
 
             $this->content->footer = '';

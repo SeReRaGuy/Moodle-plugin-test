@@ -13,6 +13,11 @@
     overflow: hidden;                       /* Скрыть всё, что выходит за границы */
     background-color: #fff;                 /* Белый фон карточки */
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);  /* Мягкая тень */
+    background-size: cover;
+    background-position: center;
+    height: 150px;
+    display: flex;
+    align-items: flex-end;
     text-align: center;                     /* Центровка текста */
     padding: 10px;                          /* Внутренние отступы */
 }
