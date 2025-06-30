@@ -21,3 +21,4 @@ $string['deleted'] = 'Olympiad deleted';
 $string['edit'] = 'Edit the Olympiad';
 $string['delete'] = 'Delete the Olympiad';
 $string['addolympiad'] = 'Create Olympiad';
+$string['viewparticipants'] = 'View participants';

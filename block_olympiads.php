@@ -120,7 +120,7 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
         }
 
         $table = new html_table(); // Генерация таблицы для блока
-        $table->head = ['Название', 'Дата начала', 'Дата окончания', 'Действия'];
+        $table->head = ['Название', 'Дата начала', 'Дата окончания', 'Участники', 'Действия'];
 
         foreach ($olympiads as $olympiad) {
             $start = userdate($olympiad->date_start);
@@ -136,7 +136,10 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
                 ['onclick' => "return confirm('Вы уверены, что хотите удалить олимпиаду?');"] // Вызов диалога подтверждения при клике
             );
 
-            $table->data[] = [$olympiad->name, $start, $end, $editicon . ' ' . $deleteicon]; // Добавление каждой записи
+            $viewurl = new moodle_url('/blocks/olympiads/participants.php', ['id' => $olympiad->id]);
+            $viewlink = html_writer::link($viewurl, get_string('viewparticipants', 'block_olympiads'), ['class' => 'btn btn-info']); // Формирует "<a href="...">Текст ссылки</a>" (ссылка, текст, HTML атрибуты (в нашем случае - класс кнопки))
+
+            $table->data[] = [$olympiad->name, $start, $end, $viewlink, $editicon . ' ' . $deleteicon];
         }
 
         $this->content->text = $addbutton . html_writer::empty_tag('br') . html_writer::table($table); // html_writer::table($table) - преобразование в HTML код

@@ -21,3 +21,4 @@ $string['deleted'] = 'Олимпиада удалена';
 $string['edit'] = 'Редактировать олимпиаду';
 $string['delete'] = 'Удалить олимпиаду';
 $string['addolympiad'] = 'Создать олимпиаду';
+$string['viewparticipants'] = 'Просмотреть участников';
