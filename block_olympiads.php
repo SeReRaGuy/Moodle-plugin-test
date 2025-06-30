@@ -45,33 +45,41 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
             $olympiads = $DB->get_records('olympiads'); // Получить все олимпиады
             $data = []; // Пустой массив с данными
 
-            foreach ($olympiads as $olympiad) { // Для каждой записи в таблице олимпиад
+            $fs = get_file_storage(); // Запись объекта файлового хранилища, который позволяет работать с файлами moodle
+            $contextid = context_system::instance()->id; // Получение id контекста
+
+            foreach ($olympiads as $olympiad) {
+                $imageurl = '';
+
+                $files = $fs->get_area_files($contextid, 'block_olympiads', 'image', $olympiad->id, 'itemid, filepath, filename', false); // Получение всех файлов из заданной области хранения (контекст, компонент, область хранения, id сущности к которой привязаны файлы, сортировка, включать ли директории?)
+
+                foreach ($files as $file) {
+                    if ($file->get_filename() === '.') { // Если имя файла пусто то ... (=== строгое сравнение: 3 == '3' - true, 3 === '3' - false)
+                        continue; // ... пропускаем
+                    }
+
+                    // Постройка URL к изображению олимпиады
+                    // Помним: http://site/pluginfile.php/CONTEXTID/COMPONENT/FILEAREA/ITEMID/FILEPATH/FILENAME
+                    $imageurl = moodle_url::make_pluginfile_url(
+                        $file->get_contextid(),
+                        $file->get_component(),
+                        $file->get_filearea(),
+                        $file->get_itemid(),
+                        $file->get_filepath(),
+                        $file->get_filename()
+                    )->out();
+
+                    break; // Используем только один файл на олимпиаду
+                }
+
                 $data[] = [
-                    'name' => $olympiad->name // Наполняем массив данных названиями олимпиад
+                    'name' => $olympiad->name,
+                    'image' => $imageurl
                 ];
             }
 
+
             $context = context_system::instance(); // Получение контекста
-            $itemid = 7;    // itemid из mdl_files, который хотим подгрузить
-            $filename = 'изображение_2025-06-27_093835712.png'; // Название файла
-            $imageurl = moodle_url::make_pluginfile_url( // Статический (::) метод make_pluginfile_url(), формирующий URL ссылку на pluginfile.php, возвращает объект типа moodle_url
-                                // Записываем информацию, по которой будет формироваться ссылка на изображение (вытягиваться из mdl_files):
-                $context->id, // id данного (в котором сейчас находится пользователь) контекста
-                'block_olympiads', // компонент
-                'image', //filearea
-                $itemid,
-                '/', // filepath (обычно такой)
-                $filename
-            )->out(); // "->" - цепочка вызовов методов, где out() преобразует moodle_url в строку
-
-            // Сформируем массив данных для шаблона
-            $data = [
-                [
-                    'name' => 'Тестовая олимпиада',
-                    'image' => $imageurl
-                ]
-            ];
-
             $this->content->text = $OUTPUT->render_from_template('block_olympiads/student_view', ['olympiads' => $data]); // Используя шаблон, рендерим карточку, передавая туда массив $data в качестве "olympiads"
 
             $this->content->footer = '';
