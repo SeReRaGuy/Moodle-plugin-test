@@ -27,3 +27,11 @@
     font-weight: bold;                      /* Жирный текст */
     margin-top: 10px;                       /* Отступ сверху */
 }
+
+/* Ссылка */
+.olympiad-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+

@@ -74,7 +74,8 @@ class block_olympiads extends block_base {   // block_имяПапки (стро
 
                 $data[] = [
                     'name' => $olympiad->name,
-                    'image' => $imageurl
+                    'image' => $imageurl,
+                    'url' => new moodle_url('/blocks/olympiads/view.php', ['id' => $olympiad->id]) // Формирование нового url к странице записи
                 ];
             }
 
